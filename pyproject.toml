@@ -22,6 +22,8 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "rasterio",
+    "pyogrio",
+    "pyproj",
     "numpy",
     "requests",
     "shapely",

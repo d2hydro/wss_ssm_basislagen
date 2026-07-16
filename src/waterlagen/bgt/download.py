@@ -11,6 +11,9 @@ import geopandas as gpd
 import requests
 from shapely.geometry import Polygon, box, shape
 
+from waterlagen._crs import ensure_dataset_crs
+from waterlagen.settings import settings
+
 logger = logging.getLogger(__name__)
 
 ROOT_URL = "https://api.pdok.nl"
@@ -95,8 +98,20 @@ def poll_downloadstatus(
     return download_url
 
 
+def _temp_gpkg_path(target_path: Path) -> Path:
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{target_path.name}.",
+        suffix=".gpkg",
+        dir=target_path.parent,
+    )
+    os.close(fd)
+    tmp_path = Path(tmp_name)
+    tmp_path.unlink(missing_ok=True)
+    return tmp_path
+
+
 def download_to_geopackage(
-    download_url: str, download_dir: Path, crs: int = 28992
+    download_url: str, download_dir: Path, crs: int | str = settings.crs
 ) -> Path:
     """Download BGT and safe as GPKG files
 
@@ -106,8 +121,8 @@ def download_to_geopackage(
         BGT download url
     download_dir : Path
         Download dir
-    crs : int, optional
-        CRS to add to GML if not in GMLs, by default 28992
+    crs : int | str, optional
+        Expected CRS for downloaded BGT layers, by default settings.crs
 
     Returns
     -------
@@ -140,14 +155,22 @@ def download_to_geopackage(
 
                 gdf = gpd.read_file(tmp_path)
 
-                if gdf.crs is None and crs is not None:
-                    gdf = gdf.set_crs(crs)
-
                 layer = Path(gml_name).stem
 
                 gpkg_out = download_dir / f"{layer}.gpkg"
-                logger.debug(f"writing {gpkg_out}")
-                gdf.to_file(gpkg_out, driver="GPKG")
+                tmp_gpkg = _temp_gpkg_path(gpkg_out)
+                try:
+                    logger.debug(f"writing {gpkg_out}")
+                    gdf.to_file(tmp_gpkg, driver="GPKG", layer=layer)
+                    ensure_dataset_crs(
+                        tmp_gpkg,
+                        expected_crs=crs,
+                        logger=logger,
+                    )
+                    tmp_gpkg.replace(gpkg_out)
+                except Exception:
+                    tmp_gpkg.unlink(missing_ok=True)
+                    raise
 
             finally:
                 if tmp_path and os.path.exists(tmp_path):
