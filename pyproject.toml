@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -33,5 +33,9 @@ dynamic = ["version"]
 tests = ["pytest"]
 
 [tool.hatch.version]
-path = "src/waterlagen/__init__.py"
+source = "vcs"
+tag-pattern = '^v?(?P<version>\d{4}\.\d{1,2}\.\d+(?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?)$'
+
+[tool.hatch.version.raw-options]
+version_scheme = "no-guess-dev"
 

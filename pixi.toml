@@ -18,14 +18,12 @@ affine = "*"
 [feature.dev.dependencies]
 mypy = "*"
 pip = "*"
-pre-commit = "*"
 pytest = "*"
 pytest-cov = "*"
 ruff = "*"
 
 [feature.dev.tasks]
 test-cov = "pytest --cov=src/waterlagen --cov-report=term-missing"
-pre-commit-install = "pre-commit install"
 
 [feature.docs.dependencies]
 mkdocs = "*"
