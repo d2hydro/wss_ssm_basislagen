@@ -418,7 +418,7 @@ def _convert_bgt_zip_to_separate_geopackages(
                         layer_name=layer_name,
                         expected_crs=expected_crs,
                         append=False,
-                        assign_missing_crs=False,
+                        assign_missing_crs=True,
                     )
                     _validate_geopackage_spatial_crs(
                         tmp_gpkg,
