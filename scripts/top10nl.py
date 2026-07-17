@@ -9,4 +9,4 @@ logger = init_logger(
 logger.info(f"datastore at dir {datastore}")
 # %%
 # download BAG in DataStore
-bag_gpkg = download_top10nl(download_dir=datastore.top10nl_dir, overwrite=False)
+top10nl_gpkg = download_top10nl(download_dir=datastore.top10nl_dir, overwrite=False)

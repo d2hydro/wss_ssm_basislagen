@@ -149,7 +149,7 @@ def create_download_dir(
     return download_dir
 
 
-def get_ahn_rasters(
+def download_ahn(
     ahn_dir: Path = datastore.ahn_dir,
     poly_mask: Polygon | None = None,
     select_indices: list[str] | None = None,
@@ -305,3 +305,8 @@ def get_ahn_rasters(
         return vrt_file
     else:
         return download_dir
+
+
+def get_ahn_rasters(*args, **kwargs) -> Path:
+    """Compatibility alias for :func:`download_ahn`."""
+    return download_ahn(*args, **kwargs)

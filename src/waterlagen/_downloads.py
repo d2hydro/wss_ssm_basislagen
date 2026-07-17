@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tempfile
@@ -22,6 +23,18 @@ class GeoServerExceptionError(DownloadPayloadError):
 @dataclass(frozen=True)
 class GeoPackageDownload:
     """Metadata for a streamed GeoPackage download."""
+
+    source_url: str
+    target_path: Path
+    downloaded_bytes: int
+    total_size_known: bool
+    total_bytes: int | None = None
+    content_type: str | None = None
+
+
+@dataclass(frozen=True)
+class FileDownload:
+    """Metadata for a streamed file download."""
 
     source_url: str
     target_path: Path
@@ -64,14 +77,40 @@ def _extract_ogc_exception_message(payload: bytes) -> str | None:
     return message or "GeoServer returned an OGC exception document"
 
 
-def _raise_for_known_error_payload(path: Path) -> None:
+def _raise_for_known_error_payload(
+    path: Path, *, content_type: str | None = None
+) -> None:
     with path.open("rb") as f:
         payload_start = f.read(65536)
+    stripped = payload_start.lstrip()
     ogc_message = _extract_ogc_exception_message(payload_start)
     if ogc_message:
         raise GeoServerExceptionError(
             f"GeoServer returned an OGC exception: {ogc_message}"
         )
+
+    content_type = (content_type or "").lower()
+    if stripped.startswith(b"<"):
+        if b"<html" in stripped[:512].lower() or "html" in content_type:
+            raise DownloadPayloadError("Downloaded payload is an HTML error document")
+        if "xml" in content_type:
+            raise DownloadPayloadError("Downloaded payload is an XML error document")
+        try:
+            root = ElementTree.fromstring(stripped)
+        except ElementTree.ParseError:
+            return
+        root_name = _local_name(root.tag).lower()
+        if root_name in {"html", "error", "exception", "exceptionreport"}:
+            raise DownloadPayloadError(
+                "Downloaded payload is an XML/HTML error document"
+            )
+
+    if stripped.startswith((b"{", b"[")) or "json" in content_type:
+        try:
+            json.loads(stripped.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return
+        raise DownloadPayloadError("Downloaded payload is a JSON error document")
 
 
 def validate_geopackage(gpkg_path: Path) -> None:
@@ -109,6 +148,66 @@ def _parse_content_length(value: str | None) -> int | None:
     return total if total > 0 else None
 
 
+def stream_download_to_temp(
+    url: str,
+    target_path: Path,
+    *,
+    suffix: str | None = None,
+    chunk_size: int = 1024 * 1024,
+    timeout: int = 30,
+    logger=None,
+    progress: bool = True,
+) -> FileDownload:
+    """Stream a download to a temporary file beside target_path."""
+    target_path = Path(target_path)
+    target_path.parent.mkdir(exist_ok=True, parents=True)
+
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{target_path.name}.",
+        suffix=suffix or target_path.suffix,
+        dir=target_path.parent,
+    )
+    tmp_path = Path(tmp_name)
+    downloaded = 0
+    total: int | None = None
+    content_type: str | None = None
+    try:
+        if logger is not None:
+            logger.info(f"Start downloading {url} to {target_path}")
+
+        with os.fdopen(fd, "wb") as f:
+            with requests.get(
+                url, stream=True, allow_redirects=True, timeout=timeout
+            ) as response:
+                response.raise_for_status()
+
+                content_type = response.headers.get("Content-Type")
+                total = _parse_content_length(response.headers.get("Content-Length"))
+
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    if not chunk:
+                        continue
+
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if progress:
+                        sys.stdout.write("\r" + _format_progress(downloaded, total))
+                        sys.stdout.flush()
+
+        _raise_for_known_error_payload(tmp_path, content_type=content_type)
+        return FileDownload(
+            source_url=url,
+            target_path=tmp_path,
+            downloaded_bytes=downloaded,
+            total_size_known=total is not None,
+            total_bytes=total,
+            content_type=content_type,
+        )
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
 def download_geopackage_with_metadata(
     url: str,
     target_path: Path,
@@ -133,38 +232,17 @@ def download_geopackage_with_metadata(
         )
 
     tmp_path: Path | None = None
-    downloaded = 0
-    total: int | None = None
-    content_type: str | None = None
     try:
-        fd, tmp_name = tempfile.mkstemp(
-            prefix=f".{target_path.name}.",
+        downloaded_file = stream_download_to_temp(
+            url=url,
+            target_path=target_path,
             suffix=".gpkg",
-            dir=target_path.parent,
+            chunk_size=chunk_size,
+            timeout=timeout,
+            logger=logger,
+            progress=progress,
         )
-        tmp_path = Path(tmp_name)
-
-        if logger is not None:
-            logger.info(f"Start downloading {url} to {target_path}")
-
-        with os.fdopen(fd, "wb") as f:
-            with requests.get(
-                url, stream=True, allow_redirects=True, timeout=timeout
-            ) as response:
-                response.raise_for_status()
-
-                content_type = response.headers.get("Content-Type")
-                total = _parse_content_length(response.headers.get("Content-Length"))
-
-                for chunk in response.iter_content(chunk_size=chunk_size):
-                    if not chunk:
-                        continue
-
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    if progress:
-                        sys.stdout.write("\r" + _format_progress(downloaded, total))
-                        sys.stdout.flush()
+        tmp_path = downloaded_file.target_path
 
         validate_geopackage(tmp_path)
         if expected_crs is not None:
@@ -175,12 +253,18 @@ def download_geopackage_with_metadata(
         return GeoPackageDownload(
             source_url=url,
             target_path=target_path,
-            downloaded_bytes=downloaded,
-            total_size_known=total is not None,
-            total_bytes=total,
-            content_type=content_type,
+            downloaded_bytes=downloaded_file.downloaded_bytes,
+            total_size_known=downloaded_file.total_size_known,
+            total_bytes=downloaded_file.total_bytes,
+            content_type=downloaded_file.content_type,
         )
 
+    except DownloadPayloadError as exc:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
+        if isinstance(exc, GeoServerExceptionError):
+            raise
+        raise DownloadPayloadError(f"{target_path} is not a valid GeoPackage") from exc
     except Exception:
         if tmp_path is not None:
             tmp_path.unlink(missing_ok=True)

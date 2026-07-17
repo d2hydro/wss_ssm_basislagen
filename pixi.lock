@@ -6759,6 +6759,8 @@ packages:
   - numpy
   - pydantic
   - pydantic-settings
+  - pyogrio
+  - pyproj
   - rasterio
   - requests
   - shapely
@@ -6774,6 +6776,7 @@ packages:
   - sphinx ; extra == 'docs'
   - argcomplete>=3.0.3 ; extra == 'test'
   - mypy>=1.7.0 ; extra == 'test'
+  - pre-commit ; extra == 'test'
   - pytest-mock ; extra == 'test'
   - pytest-mypy-testing ; extra == 'test'
   - pytest>=7.0,<8.2 ; extra == 'test'
@@ -6811,6 +6814,7 @@ packages:
   - msgpack ; extra == 'test'
   - mypy ; platform_python_implementation != 'PyPy' and extra == 'test'
   - paramiko ; sys_platform == 'win32' and extra == 'test'
+  - pre-commit ; extra == 'test'
   - pytest ; extra == 'test'
   - pytest-cov ; extra == 'test'
   - pytest-jupyter[client]>=0.6.2 ; extra == 'test'
@@ -6923,6 +6927,7 @@ packages:
   - pyside6 ; extra == 'pyside6'
   - flaky ; extra == 'test'
   - ipyparallel ; extra == 'test'
+  - pre-commit ; extra == 'test'
   - pytest-asyncio>=0.23.5 ; extra == 'test'
   - pytest-cov ; extra == 'test'
   - pytest-timeout ; extra == 'test'
@@ -7070,6 +7075,7 @@ packages:
   - sphinxcontrib-spelling ; extra == 'docs'
   - traitlets ; extra == 'docs'
   - ipykernel ; extra == 'test'
+  - pre-commit ; extra == 'test'
   - pytest-cov ; extra == 'test'
   - pytest-timeout ; extra == 'test'
   - pytest<9 ; extra == 'test'

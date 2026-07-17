@@ -34,8 +34,18 @@ def _format_crs(value: str | int | CRS) -> str:
     return crs.to_string()
 
 
+def format_crs(value: str | int | CRS) -> str:
+    """Return a stable display label for a CRS."""
+    return _format_crs(value)
+
+
 def _same_crs(left: str | int | CRS, right: str | int | CRS) -> bool:
     return _canonical_crs(left) == _canonical_crs(right)
+
+
+def same_crs(left: str | int | CRS, right: str | int | CRS) -> bool:
+    """Return True when two CRS definitions are equivalent."""
+    return _same_crs(left, right)
 
 
 def read_layer_crs_info(path: Path) -> list[LayerCRSInfo]:
