@@ -14,7 +14,7 @@ from shapely.geometry import base, box
 
 from waterlagen import datastore
 from waterlagen.logger import get_logger
-from waterlagen.raster import create_vrt_file, list_tif_files_in_vrt_file
+from waterlagen.raster.vrt import create_vrt_file, list_tif_files_in_vrt_file
 
 logger = get_logger(__name__)
 

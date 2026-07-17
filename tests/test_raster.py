@@ -1,7 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-import waterlagen.raster as raster_mod
+import waterlagen.raster.vrt as vrt_mod
 
 
 def test_create_vrt_file_builds_from_tifs(tmp_path, monkeypatch):
@@ -28,12 +28,12 @@ def test_create_vrt_file_builds_from_tifs(tmp_path, monkeypatch):
         calls["options"] = options
         return DummyDataset()
 
-    monkeypatch.setattr(raster_mod, "gdal", SimpleNamespace(
+    monkeypatch.setattr(vrt_mod, "gdal", SimpleNamespace(
         BuildVRTOptions=_fake_options,
         BuildVRT=_fake_build_vrt,
     ))
 
-    out = raster_mod.create_vrt_file(vrt_file=vrt, directory=tmp_path)
+    out = vrt_mod.create_vrt_file(vrt_file=vrt, directory=tmp_path)
 
     assert out == vrt
     assert calls["destName"] == vrt.as_posix()
@@ -47,10 +47,10 @@ def test_create_vrt_file_builds_from_tifs(tmp_path, monkeypatch):
 
 def test_create_vrt_file_warns_when_no_tifs(tmp_path, monkeypatch):
     warnings = []
-    monkeypatch.setattr(raster_mod.logger, "warning", warnings.append)
+    monkeypatch.setattr(vrt_mod.logger, "warning", warnings.append)
     vrt = tmp_path / "empty.vrt"
 
-    out = raster_mod.create_vrt_file(vrt_file=vrt, directory=tmp_path)
+    out = vrt_mod.create_vrt_file(vrt_file=vrt, directory=tmp_path)
 
     assert out == vrt
     assert len(warnings) == 1
@@ -62,11 +62,11 @@ def test_list_tif_files_in_vrt_file_filters_vrt_self(tmp_path, monkeypatch):
     files = [vrt.as_posix(), "C:/tmp/one.tif", "C:/tmp/two.tif"]
 
     monkeypatch.setattr(
-        raster_mod,
+        vrt_mod,
         "gdal",
         SimpleNamespace(Info=lambda path, format: {"files": files}),
     )
 
-    listed = raster_mod.list_tif_files_in_vrt_file(vrt_file=vrt)
+    listed = vrt_mod.list_tif_files_in_vrt_file(vrt_file=vrt)
 
     assert listed == [Path("C:/tmp/one.tif"), Path("C:/tmp/two.tif")]

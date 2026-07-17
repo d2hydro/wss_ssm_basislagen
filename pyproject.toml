@@ -27,7 +27,8 @@ dependencies = [
     "numpy",
     "requests",
     "shapely",
-    "affine"
+    "affine",
+    "tqdm"
 ]
 dynamic = ["version"]
 
@@ -40,4 +41,13 @@ tag-pattern = '^v?(?P<version>\d{4}\.\d{1,2}\.\d+(?:(?:a|b|rc)\d+)?(?:\.post\d+)
 
 [tool.hatch.version.raw-options]
 version_scheme = "no-guess-dev"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/waterlagen"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/waterlagen/resources/landsgrens.gpkg" = "waterlagen/resources/landsgrens.gpkg"
+
+[tool.hatch.build.targets.sdist.force-include]
+"src/waterlagen/resources/landsgrens.gpkg" = "src/waterlagen/resources/landsgrens.gpkg"
 

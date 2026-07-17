@@ -16,6 +16,7 @@ numpy = "*"
 requests = "*"
 shapely = "*"
 affine = "*"
+tqdm = "*"
 
 [feature.dev.dependencies]
 mypy = "*"
@@ -26,6 +27,7 @@ ruff = "*"
 
 [feature.dev.tasks]
 test-cov = "pytest --cov=src/waterlagen --cov-report=term-missing"
+landgebruik = "python scripts/landgebruik.py"
 
 [feature.docs.dependencies]
 mkdocs = "*"

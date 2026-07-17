@@ -156,7 +156,7 @@ def download_ahn(
     model: Literal["dtm", "dsm"] = "dtm",
     cell_size: Literal["05", "5"] = "05",
     ahn_version: Literal[3, 4, 5, 6] = 4,
-    service: Literal["ahn_pdok", "ahn_datastroom"] = "ahn_pdok",
+    service: Literal["ahn_pdok", "ahn_nl"] = "ahn_pdok",
     missing_only: bool = True,
     create_vrt: bool = True,
     save_tiles_index: bool = False,
@@ -173,7 +173,7 @@ def download_ahn(
         Mask to select ahn-tiles, by default None
     select_indices : list[str] | None, optional
         Indices to select, by default None
-    service : Literal["ahn_pdok", "ahn_datastroom"], optional
+    service : Literal["ahn_pdok", "ahn_nl"], optional
         Switch for using pdok.nl or ahn.nl for downloading ahn_data
     missing_only : bool, optional
         Only download rasters not yet existing in download_dir, by default True
