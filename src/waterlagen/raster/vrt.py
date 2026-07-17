@@ -8,12 +8,13 @@ from waterlagen.logger import get_logger
 logger = get_logger(__name__)
 
 gdal.UseExceptions()
+gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
 COG_CREATION_OPTIONS = (
     "COMPRESS=ZSTD",
     "LEVEL=9",
     "BLOCKSIZE=512",
-    "OVERVIEW_RESAMPLING=MODE",
+    "OVERVIEW_RESAMPLING=NEAREST",
     "BIGTIFF=IF_SAFER",
     "NUM_THREADS=ALL_CPUS",
 )
