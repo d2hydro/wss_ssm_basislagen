@@ -5,8 +5,12 @@ from pathlib import Path
 
 from waterlagen import datastore
 from waterlagen.functioneel_landgebruik import bouw_functioneel_landgebruik_tiles
+from waterlagen.logger import get_logger
+from waterlagen.raster.inspect import inspect_raster
 from waterlagen.raster.tiles import build_tiles
 from waterlagen.raster.vrt import create_cog_file, create_vrt_file
+
+logger = get_logger(__name__)
 
 
 def _safe_workers(max_workers: int = 3) -> int:
@@ -37,14 +41,15 @@ def main() -> Path:
     vrt_file = create_vrt_file(
         vrt_file=data_dir / "functioneel_landgebruik.vrt", directory=tiles_dir
     )
-    print(f"VRT built: {vrt_file}")
 
+    print(f"Create cog_file from vrt_file: {vrt_file}")
     cog_file = create_cog_file(
         vrt_file=vrt_file,
         cog_file=data_dir / "functioneel_landgebruik.tif",
         overwrite=False,
     )
-    print(f"National COG built: {cog_file}")
+
+    inspect_raster(cog_file)
     return cog_file
 
 
