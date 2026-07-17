@@ -1,7 +1,7 @@
 # %%
 import rasterio
 
-from waterlagen.ahn import create_download_dir, get_ahn_rasters
+from waterlagen.ahn import create_download_dir, download_ahn
 
 SAMPLE_COORDS = [
     (111176.5, 516525.5),
@@ -38,7 +38,7 @@ def test_download_ahn4_pdok(ahn_dir):
     assert download_dir.exists()
 
     # download rasters and assert existing
-    vrt_file = get_ahn_rasters(
+    vrt_file = download_ahn(
         ahn_dir=download_dir,
         service=service,
         select_indices=select_indices,
@@ -72,7 +72,7 @@ def test_download_ahn5_datastroom(ahn_dir):
     )
 
     # download rasters and assert existing
-    vrt_file = get_ahn_rasters(
+    vrt_file = download_ahn(
         ahn_dir=download_dir,
         service=service,
         select_indices=select_indices,
@@ -105,7 +105,7 @@ def test_download_ahn6_datastroom(ahn_dir):
     )
 
     # download rasters and assert existing
-    vrt_file = get_ahn_rasters(
+    vrt_file = download_ahn(
         ahn_dir=download_dir,
         service=service,
         select_indices=select_indices,

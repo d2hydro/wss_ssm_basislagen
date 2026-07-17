@@ -65,5 +65,26 @@ class DataStore(BaseSettings):
         bag_dir.mkdir(exist_ok=True, parents=True)
         return bag_dir
 
+    @computed_field
+    @property
+    def top10nl_dir(self) -> Path:
+        top10nl_dir = self.source_data_dir / "top10nl"
+        top10nl_dir.mkdir(exist_ok=True, parents=True)
+        return top10nl_dir
+
+    @computed_field
+    @property
+    def brp_dir(self) -> Path:
+        brp_dir = self.source_data_dir / "brp"
+        brp_dir.mkdir(exist_ok=True, parents=True)
+        return brp_dir
+
+    @computed_field
+    @property
+    def dijkringen_dir(self) -> Path:
+        dijkringen_dir = self.source_data_dir / "dijkringen"
+        dijkringen_dir.mkdir(exist_ok=True, parents=True)
+        return dijkringen_dir
+
 
 datastore = DataStore()

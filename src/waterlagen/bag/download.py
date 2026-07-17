@@ -7,7 +7,9 @@ import geopandas as gpd
 import requests
 
 from waterlagen import datastore
+from waterlagen._downloads import download_geopackage
 from waterlagen.logger import get_logger
+from waterlagen.settings import settings
 
 logger = get_logger(name=__name__)
 
@@ -126,46 +128,17 @@ def download_bag_light(
     Path
         Path to BAG GeoPackage
     """
-    # make dir to GPKG
     download_dir = Path(download_dir)
-    download_dir.mkdir(exist_ok=True, parents=True)
 
-    # define download params
     url = f"{ROOT_URL}/atom/downloads/bag-light.gpkg"
-    chunk_size: int = 1024 * 1024
     bag_gpkg = download_dir / Path(url).name
-    if (not bag_gpkg.exists()) or overwrite:
-        downloaded = 0
-
-        # stream chuncks to output file
-        logger.info(f"Start downloading BAG {url} to {bag_gpkg}")
-        with requests.get(
-            url, stream=True, allow_redirects=True, timeout=30
-        ) as response:
-            response.raise_for_status()
-
-            # get file-size for logging
-            total = response.headers.get("Content-Length")
-            total = int(total) if total is not None else None
-
-            # open GPKG for chunked writing
-            with open(bag_gpkg, "wb") as f:
-                for chunk in response.iter_content(chunk_size=chunk_size):
-                    if chunk:
-                        # write chunck
-                        f.write(chunk)
-
-                        # echo progress in console
-                        downloaded += len(chunk)
-                        if total is not None:
-                            percent = downloaded / total * 100
-                            msg = f"{downloaded / 1024 / 1024:.1f} / {total / 1024 / 1024:.1f} MB ({percent:.1f}%)"
-                        else:
-                            msg = f"{downloaded / 1024 / 1024:.1f} MB"
-                        sys.stdout.write("\r" + msg)
-                        sys.stdout.flush()
-
-    return bag_gpkg
+    return download_geopackage(
+        url=url,
+        target_path=bag_gpkg,
+        overwrite=overwrite,
+        logger=logger,
+        expected_crs=settings.crs,
+    )
 
 
 def get_bag_features(

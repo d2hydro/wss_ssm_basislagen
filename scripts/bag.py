@@ -4,9 +4,7 @@ from waterlagen.ahn import AHNService, get_tiles_features
 from waterlagen.bag import download_bag_light, get_bag_features
 from waterlagen.logger import init_logger
 
-logger = init_logger(
-    name="bag_download", log_file=datastore.data_dir / "get_bag_features.log"
-)
+logger = init_logger(name="BAG_download", log_file=datastore.data_dir / "get_bag.log")
 logger.info(f"datastore at dir {datastore}")
 # %%
 # download BAG in DataStore
