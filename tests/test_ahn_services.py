@@ -22,9 +22,9 @@ def test_ahn_pdok():
     assert [int(i) for i in gdf.total_bounds] == [10000, 306250, 280000, 618750]
 
 
-def test_ahn5_datastroom():
-    """Test if AHN DATASTROOM is online, and AHN < 6 tile-specs haven't changed"""
-    ahn_service = AHNService(service="ahn_datastroom")
+def test_ahn5_ahn_nl():
+    """Test if AHN.nl is online, and AHN < 6 tile-specs haven't changed"""
+    ahn_service = AHNService(service="ahn_nl")
     gdf = ahn_service.get_tiles(ahn_version=5)
 
     # length is still as expected
@@ -37,9 +37,9 @@ def test_ahn5_datastroom():
     assert [int(i) for i in gdf.total_bounds] == [10000, 306250, 280000, 625000]
 
 
-def test_ahn6_datastroom():
-    """Test if AHN DATASTROOM is online, and AHN 6 tile-specs haven't changed"""
-    ahn_service = AHNService(service="ahn_datastroom")
+def test_ahn6_ahn_nl():
+    """Test if AHN.nl is online, and AHN 6 tile-specs haven't changed"""
+    ahn_service = AHNService(service="ahn_nl")
     gdf = ahn_service.get_tiles(ahn_version=6)
 
     # length is still as expected

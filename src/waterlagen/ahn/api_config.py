@@ -8,12 +8,12 @@ from pydantic import BaseModel
 
 
 class AHNService(BaseModel):
-    service: Literal["ahn_pdok", "ahn_datastroom"] = "ahn_datastroom"
+    service: Literal["ahn_pdok", "ahn_nl"] = "ahn_nl"
 
     def _validate_inputs(
         self, cell_size: Literal["05", "5"], ahn_version: Literal[3, 4, 5, 6]
     ) -> None:
-        # validate cell_size (only configurabele for ahn_datastroom)
+        # validate cell_size (only configurable for ahn.nl)
         if cell_size not in ["05", "5"]:
             raise ValueError(f'`cell_size` should be "05" or "5" not {cell_size}')
         if cell_size == "5" and self.service == "ahn_pdok":
@@ -40,7 +40,7 @@ class AHNService(BaseModel):
         if self.service == "ahn_pdok":
             ahn_type = f"{model}_{cell_size}m"
             return f"https://service.pdok.nl/rws/ahn/atom/downloads/{ahn_type}/kaartbladindex.json"
-        elif self.service == "ahn_datastroom":
+        elif self.service == "ahn_nl":
             if ahn_version < 6:
                 return "https://basisdata.nl/hwh-ahn/AUX/bladwijzer.gpkg"
             else:
@@ -59,7 +59,7 @@ class AHNService(BaseModel):
         self._validate_inputs(cell_size, ahn_version)
         if self.service == "ahn_pdok":
             return "url"
-        if self.service == "ahn_datastroom":
+        if self.service == "ahn_nl":
             if ahn_version < 6:
                 if model == "dtm":
                     postfix = "M"
@@ -92,7 +92,7 @@ class AHNService(BaseModel):
         if self.service == "ahn_pdok":
             gdf = gpd.GeoDataFrame.from_features(response.json(), crs=28992)
             gdf.set_index("kaartbladNr", inplace=True)
-        elif self.service == "ahn_datastroom":
+        elif self.service == "ahn_nl":
             if ahn_version < 6:
                 with warnings.catch_warnings():
                     warnings.filterwarnings(
