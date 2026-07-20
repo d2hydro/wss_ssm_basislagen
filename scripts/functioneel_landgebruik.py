@@ -5,12 +5,16 @@ from pathlib import Path
 
 from waterlagen import datastore
 from waterlagen.functioneel_landgebruik import bouw_functioneel_landgebruik_tiles
-from waterlagen.logger import get_logger
+from waterlagen.logger import init_logger
 from waterlagen.raster.inspect import inspect_raster
 from waterlagen.raster.tiles import build_tiles
 from waterlagen.raster.vrt import create_cog_file, create_vrt_file
 
-logger = get_logger(__name__)
+logger = init_logger(
+    name="bouw landgebruik",
+    debug=False,
+    log_file=datastore.data_dir / "bouw_functioneel_landgebruik.log",
+)
 
 
 def _safe_workers(max_workers: int = 3) -> int:
