@@ -4,7 +4,9 @@ from types import SimpleNamespace
 
 
 def _load_landgebruik_script():
-    script_path = Path(__file__).resolve().parents[1] / "scripts" / "landgebruik.py"
+    script_path = (
+        Path(__file__).resolve().parents[1] / "scripts" / "functioneel_landgebruik.py"
+    )
     spec = importlib.util.spec_from_file_location("landgebruik_script", script_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -42,6 +44,9 @@ def test_landgebruik_script_builds_tiles_vrt_and_cog_in_order(
         events.append(("create_cog_file", kwargs))
         return kwargs["cog_file"]
 
+    def fake_inspect_raster(path):
+        events.append(("inspect_raster", path))
+
     monkeypatch.setattr(landgebruik, "datastore", SimpleNamespace(
         processed_data_dir=processed_dir
     ))
@@ -54,6 +59,7 @@ def test_landgebruik_script_builds_tiles_vrt_and_cog_in_order(
     )
     monkeypatch.setattr(landgebruik, "create_vrt_file", fake_create_vrt_file)
     monkeypatch.setattr(landgebruik, "create_cog_file", fake_create_cog_file)
+    monkeypatch.setattr(landgebruik, "inspect_raster", fake_inspect_raster)
 
     result = landgebruik.main()
 
@@ -67,6 +73,7 @@ def test_landgebruik_script_builds_tiles_vrt_and_cog_in_order(
         "build_landgebruik_tiles",
         "create_vrt_file",
         "create_cog_file",
+        "inspect_raster",
     ]
     assert events[0][1] == {"tile_size_m": 5000, "overwrite": False}
     assert events[1][1]["target_dir"] == tiles_dir
@@ -79,9 +86,10 @@ def test_landgebruik_script_builds_tiles_vrt_and_cog_in_order(
         "cog_file": cog_file,
         "overwrite": False,
     }
+    assert events[4][1] == cog_file
     assert result == cog_file
 
     output = capsys.readouterr().out
     assert "Tiles built: 2" in output
-    assert f"VRT built: {vrt_file}" in output
-    assert f"National COG built: {cog_file}" in output
+    assert "Create VRT-file" in output
+    assert f"Create cog_file from vrt_file: {vrt_file}" in output

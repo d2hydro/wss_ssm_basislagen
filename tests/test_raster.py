@@ -120,7 +120,7 @@ def test_create_cog_file_translates_vrt_directly_to_cog(tmp_path, monkeypatch):
     assert calls["destName"] == (tmp_path / "functioneel_landgebruik.tmp.tif").as_posix()
     assert calls["options_kwargs"]["format"] == "COG"
     assert calls["options_kwargs"]["creationOptions"] == list(vrt_mod.COG_CREATION_OPTIONS)
-    assert "OVERVIEW_RESAMPLING=MODE" in calls["options_kwargs"]["creationOptions"]
+    assert "OVERVIEW_RESAMPLING=NEAREST" in calls["options_kwargs"]["creationOptions"]
     assert calls["options_kwargs"]["noData"] == 0
     assert "callback" not in calls["options_kwargs"]
 
